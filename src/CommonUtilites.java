@@ -18,7 +18,7 @@ public class CommonUtilites {
         return date;
     }
 
-    public static String convertDateToString(LocalDate date){
+    public static String convertDateToString(LocalDate date) {
         return date.format(dateFormat);
     }
 
@@ -136,6 +136,3 @@ public class CommonUtilites {
         return timeAndDate;
     }
 }
-
-
-

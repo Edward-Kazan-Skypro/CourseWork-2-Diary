@@ -257,7 +257,6 @@ public class Task {
             }
         }
         return string + "\nзадача запланирована на:\n" + listDatesForConsole;
-
     }
 
     //Внутренний класс для работы со списком задач и списком дат задачи

@@ -36,8 +36,6 @@ public class Main {
         Task.TasksUtilites.addDatesToList(task_3.getDatesList(), task_3.getPeriodicity());
         Task.TasksUtilites.taskMap.put(task_3.getID_number(), task_3);
 
-
-
         Menu.showMenu();
     }
 
