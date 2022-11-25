@@ -1,5 +1,5 @@
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Task {
@@ -41,7 +41,7 @@ public class Task {
     private Periodicity periodicity;
 
     //Список для хранения дат, на которые назначена задача
-    private LinkedList<LocalDate> datesList = new LinkedList<>();
+    private LinkedList<LocalDateTime> datesList = new LinkedList<>();
 
     //Тип задачи, от него зависят признаки - личная/публичная
     private String typeTask;
@@ -51,7 +51,7 @@ public class Task {
     //ID задачи - создается автоматически, новая задача - новый ID
     static int idTask = 1;
 
-    public Task(String header, String descriptionTask, Periodicity periodicity, String typeTask, LinkedList<LocalDate> datesList) {
+    public Task(String header, String descriptionTask, Periodicity periodicity, String typeTask, LinkedList<LocalDateTime> datesList) {
         this.header = header;
         this.descriptionTask = descriptionTask;
         this.periodicity = periodicity;
@@ -90,11 +90,11 @@ public class Task {
         this.periodicity = periodicity;
     }
 
-    public LinkedList<LocalDate> getDatesList() {
+    public LinkedList<LocalDateTime> getDatesList() {
         return datesList;
     }
 
-    public void setDatesList(LinkedList<LocalDate> datesList) {
+    public void setDatesList(LinkedList<LocalDateTime> datesList) {
         this.datesList = datesList;
     }
 
@@ -136,7 +136,7 @@ public class Task {
         task.setPeriodicity(CommonUtilites.selectPeriodicity());
 
         //Блок - ввод даты и времени (и сразу же проверка)
-        LocalDate dateTime = CommonUtilites.inputTimeAndDate();
+        LocalDateTime dateTime = CommonUtilites.inputTimeAndDate();
         //Теперь, зная периодичность выполнения задачи
         //И можем сформировать список дат, когда эта задача должна выполняться
         //Список дат зависит от выбранной периодичности
@@ -171,10 +171,10 @@ public class Task {
             Task task = TasksUtilites.taskMap.get(id);
             //Перед редактированием задачи хорошо бы обновить список дат, на которые назначена задача
             //Ситуация - задачу создали год назад и она еще длится. Так зачем хранить все старые даты?
-            LinkedList<LocalDate> dList = new LinkedList<>();
+            LinkedList<LocalDateTime> dList = new LinkedList<>();
             //Создали список с актуальными датами
             for (int i = 0; i < task.getDatesList().size(); i++) {
-                if (task.getDatesList().get(i).isAfter(LocalDate.now())) {
+                if (task.getDatesList().get(i).isAfter(LocalDateTime.now())) {
                     dList.add(task.getDatesList().get(i));
                 }
             }
@@ -202,7 +202,7 @@ public class Task {
             if (CommonUtilites.selectChoice()) {
                 task.setPeriodicity(CommonUtilites.selectPeriodicity());
                 //сохраним первую дату
-                LocalDate oldDate = task.getDatesList().get(0);
+                LocalDateTime oldDate = task.getDatesList().get(0);
                 task.getDatesList().clear();
                 task.getDatesList().add(oldDate);
                 //теперь обновим список дат задачи с учетом изменившейся периодичности
@@ -210,12 +210,12 @@ public class Task {
             }
 
             //Получим первую дату, на которую была назначена задача
-            String date = CommonUtilites.convertDateToString(task.getDatesList().get(0));
-            System.out.println("Дата, на которую запланирована задача: " + date);
-            System.out.println("Редактируем дату задачи?");
+            String date = CommonUtilites.convertFullDateToString(task.getDatesList().get(0));
+            System.out.println("Время и дата, на которые запланирована задача: " + date);
+            System.out.println("Редактируем?");
             if (CommonUtilites.selectChoice()) {
                 //вводим новую дату
-                LocalDate newDate = CommonUtilites.inputTimeAndDate();
+                LocalDateTime newDate = CommonUtilites.inputTimeAndDate();
                 //очищаем список от старых дат
                 task.getDatesList().clear();
                 //добавляем в список новую дату (первую)
@@ -244,16 +244,17 @@ public class Task {
 
     @Override
     public String toString() {
-        String string = "Задача - " + header +
-                ", описание задачи: " + descriptionTask + "\n" +
+        LocalDateTime date = getDatesList().get(0);
+        String str = CommonUtilites.convertFullDateToString(date);
+        String string = str + " - " + header + "\n" +
+                "описание задачи: " + descriptionTask + "\n" +
                 "периодичность: " + periodicity +
                 ", тип задачи: " + typeTask +
                 ", ID задачи: " + ID_number;
         LinkedList<String> listDatesForConsole = new LinkedList<>();
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
         if (isActiveTask()) {
-            for (LocalDate ld : datesList) {
-                listDatesForConsole.add(ld.format(formatter));
+            for (LocalDateTime ld : datesList) {
+                listDatesForConsole.add(CommonUtilites.convertFullDateToString(ld));
             }
         }
         return string + "\nзадача запланирована на:\n" + listDatesForConsole;
@@ -287,19 +288,40 @@ public class Task {
             }
         }
 
-        public static String createTaskListByDate(LocalDate bufferDate) {
-            DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
-            String dateAsString = bufferDate.format(dateFormat);
-            String view = "Список задач на " + dateAsString + ":\n";
+        public static String createTaskListByDate(LocalDateTime inputFullDate) {
+            //Из полной даты получаем только дату
+            LocalDate inputDate = inputFullDate.toLocalDate();
+            //Конвертируем дату в текст
+            String onlyDateAsString = CommonUtilites.convertDateToString(inputDate);
+            String view = "Список задач на " + onlyDateAsString + ":\n";
             String bufferView = "";
+            //Нужен отсортированный список задач, отвечающих условию - введенной дате
+            TreeMap<LocalDateTime, Task> sortedDates = new TreeMap<>();
+            //Заполним этот список
             for (Map.Entry<Integer, Task> t : taskMap.entrySet()) {
                 Task bufferTask = t.getValue();
-                int size = bufferTask.datesList.size();
-                for (int i = 0; i < size; i++) {
-                    if (bufferTask.datesList.get(i).isEqual(bufferDate) && bufferTask.isActiveTask()) {
-                        bufferView = bufferView + bufferTask.header + "\n";
+                for (int i = 0; i < bufferTask.datesList.size(); i++) {
+                    //Здесь тоже надо из каждой задачи получить только дату этой задачи
+                    //Это надо для фильтрации только по дате, без учета времени
+                    LocalDateTime fullDateTimeTask = bufferTask.datesList.get(i);
+                    //Из полной даты получаем только дату
+                    LocalDate onlyDateTask = fullDateTimeTask.toLocalDate();
+                    //Теперь пропускаем задачи через условия
+                    if (onlyDateTask.isEqual(inputDate) && bufferTask.isActiveTask()) {
+                        //И добавляем отфильтрованную задачу в список
+                        sortedDates.put(bufferTask.datesList.get(i), bufferTask);
                     }
                 }
+            }
+            //Мы получили список задач, отвечающих условию - введенной дате.
+            //Сформируем из этого списка текст для просмотра.
+            for (Map.Entry<LocalDateTime, Task> e : sortedDates.entrySet()) {
+                //Получим время и дату задачи и конвертируем в строку
+                String onlyTimeBuffer = CommonUtilites.convertFullDateToString(e.getKey());
+                //Отбросим дату, оставим только время задачи
+                String onlyTime = onlyTimeBuffer.substring(0, 5);
+                //Добавим в текст полученные строки
+                bufferView = bufferView + onlyTime + " - " + e.getValue().getHeader() + "\n";
             }
             if (bufferView.isEmpty()) {
                 view = view + "На эту дату нет запланированных задач.";
@@ -310,8 +332,7 @@ public class Task {
         }
 
         public static void viewCurrentDayTask() {
-            LocalDate bufferDate = LocalDate.now();
-            String view = "";
+            LocalDateTime bufferDate = LocalDateTime.now();
             if (TasksUtilites.taskMap.size() < 1) {
                 System.out.println("Список запланированных задач пуст. Добавьте задачу.");
             } else {
@@ -320,15 +341,18 @@ public class Task {
         }
 
         public static void viewTasksByDate() {
-            LocalDate bufferDate;
+            LocalDateTime bufferDate;
             String dateAsString;
-            String view = "";
-            DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+            String fullDateAsString;
             if (TasksUtilites.taskMap.size() < 1) {
                 System.out.println("Список запланированных задач пуст. Добавьте задачу.");
             } else {
                 dateAsString = CommonUtilites.inputString();
-                bufferDate = LocalDate.parse(dateAsString, dateFormat);
+                //Выше получили только дату, но без времени.
+                //Вводить удобнее только дату, поэтому время сами добавим к тексту.
+                //А текст конвертируем в полную дату и время.
+                fullDateAsString = "00:00" + " " + dateAsString;
+                bufferDate = CommonUtilites.convertStringToFullDate(fullDateAsString);
                 System.out.println(TasksUtilites.createTaskListByDate(bufferDate));
             }
         }
@@ -350,7 +374,7 @@ public class Task {
             } else System.out.println("- пустой ");
         }
 
-        public static LinkedList<LocalDate> addDatesToList(LinkedList<LocalDate> datesList, Periodicity periodicity) {
+        public static LinkedList<LocalDateTime> addDatesToList(LinkedList<LocalDateTime> datesList, Periodicity periodicity) {
             int sizeDateList = periodicity.getHorizontPlanning();
             //Цикл начинаем с 1, т.к. первый элемент уже добавили ранее.
             //Получается, что к первому элементу списка добавляем следующий в зависимости от периодичности
