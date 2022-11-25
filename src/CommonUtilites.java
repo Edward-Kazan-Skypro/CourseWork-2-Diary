@@ -2,11 +2,13 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Scanner;
 
 public class CommonUtilites {
     static DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    static DateTimeFormatter fullDateFormat = DateTimeFormatter.ofPattern("HH:mm dd.MM.yyyy");
 
     public static LocalDate convertStringToDate(String string) {
         LocalDate date = LocalDate.now();
@@ -18,8 +20,22 @@ public class CommonUtilites {
         return date;
     }
 
+    public static LocalDateTime convertStringToFullDate(String string) {
+        LocalDateTime date = LocalDateTime.now();
+        try {
+            date = LocalDateTime.parse(string, fullDateFormat);
+        } catch (RuntimeException ex) {
+            System.out.println("Данные введены неправильно. Попробуйте ввести еще раз.");
+        }
+        return date;
+    }
+
     public static String convertDateToString(LocalDate date) {
         return date.format(dateFormat);
+    }
+
+    public static String convertFullDateToString(LocalDateTime date) {
+        return date.format(fullDateFormat);
     }
 
     public static String inputString() {
@@ -109,18 +125,17 @@ public class CommonUtilites {
         return periodicity;
     }
 
-    public static LocalDate inputTimeAndDate() {
-        LocalDate timeAndDate = LocalDate.now();
-        DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+    public static LocalDateTime inputTimeAndDate() {
+        LocalDateTime timeAndDate = LocalDateTime.now();
         String bufferTimeAndDate = "";
         while (bufferTimeAndDate.length() == 0) {
-            System.out.println("Введите дату, на которую запланирована задача");
-            System.out.println("Пожалуйста, вводите данные так - 31.12.2022");
+            System.out.println("Введите время и дату, на которые запланирована задача");
+            System.out.println("Пожалуйста, вводите данные так - 00:00 31.12.2022");
             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
             try {
                 bufferTimeAndDate = bufferedReader.readLine();
-                timeAndDate = LocalDate.parse(bufferTimeAndDate, dateFormat);
-                if (timeAndDate.isBefore(LocalDate.now())) {
+                timeAndDate = CommonUtilites.convertStringToFullDate(bufferTimeAndDate);
+                if (timeAndDate.isBefore(LocalDateTime.now())) {
                     System.out.println("Указанная дата уже истекла");
                     System.out.println("Пожалуйста, укажите новую дату.");
                 } else {
