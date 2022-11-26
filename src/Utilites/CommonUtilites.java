@@ -1,3 +1,5 @@
+package Utilites;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -90,31 +92,31 @@ public class CommonUtilites {
         return typeTask;
     }
 
-    public static Task.Periodicity selectPeriodicity() {
-        Task.Periodicity periodicity = Task.Periodicity.ONCE;
+    public static Enums.Periodicity selectPeriodicity() {
+        Enums.Periodicity periodicity = Enums.Periodicity.ONCE;
         System.out.println("Выберите периодичность выполнения задачи:");
         System.out.println("1 разово  2 ежедневно  3 еженедельно  4 ежемесячно  5 ежегодно");
         Scanner scanner = new Scanner(System.in);
         int select = scanner.nextInt();
         switch (select) {
             case 1: //1 однократно
-                periodicity = Task.Periodicity.ONCE;
+                periodicity = Enums.Periodicity.ONCE;
                 System.out.println("Выбрана РАЗОВАЯ периодичность");
                 break;
             case 2: //2 ежедневно
-                periodicity = Task.Periodicity.DAILY;
+                periodicity = Enums.Periodicity.DAILY;
                 System.out.println("Выбрана ЕЖЕДЕНЕВНАЯ периодичность");
                 break;
             case 3: //3 еженедельно
-                periodicity = Task.Periodicity.WEEKLY;
+                periodicity = Enums.Periodicity.WEEKLY;
                 System.out.println("Выбрана ЕЖЕНЕДЕЛЬНАЯ периодичность");
                 break;
             case 4: //4 ежемесячно
-                periodicity = Task.Periodicity.MONTHLY;
+                periodicity = Enums.Periodicity.MONTHLY;
                 System.out.println("Выбрана ЕЖЕМЕСЯЧНАЯ периодичность");
                 break;
             case 5: //5 ежегодно
-                periodicity = Task.Periodicity.ANNUALLY;
+                periodicity = Enums.Periodicity.ANNUALLY;
                 System.out.println("Выбрана ЕЖЕГОДНАЯ периодичность");
                 break;
         }
